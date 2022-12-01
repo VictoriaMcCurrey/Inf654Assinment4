@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+    <!--Import css-->
+    <link rel="stylesheet" href="/app.css">
+
+    <title>Multiplication Facts</title>
+
+</head>
+<body class="teal">
+
+<!--Page Content-->
+<h1 class="center"><br><b>Multiplication Facts</b></h1>    
+    
+<div class="content">
+    <form id="add-multiplication-form">
+        <input type="text" name="fact" placeholder="Ones Fact">
+        <input type="text" name="answer" placeholder="Ones Fact answer">
+        <button>Add Ones Fact</button>
+    </form>
+    <ul id="multiplication-fact-list"></ul>
+</div>
+
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, addDoc, doc, deleteDoc, query, where, updateDoc } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDrLdeHTSI6gmJ9rdFeZ4Ov0cE6x6_1ACE",
+      authDomain: "multiplication-facts-b2253.firebaseapp.com",
+      projectId: "multiplication-facts-b2253",
+      storageBucket: "multiplication-facts-b2253.appspot.com",
+      messagingSenderId: "192994792651",
+      appId: "1:192994792651:web:1263912fe4c89303d4374e"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    async function getMultiplicationFacts(db) {
+        const oncesCol = collection(db, "ones");
+        const onesSnapshot = await getDocs(oncesCol);
+        const onesList = onesSnapshot.docs.map((doc) => doc.data());
+        return onesList;
+    }
+
+    const onesList = document.querySelector('#multiplication-fact-list');
+    const form = document.querySelector('#add-multiplication-form');
+
+    function renderMultiplicationFact(dc){
+        let li = document.createElement("li");
+        let fact = document.createElement("span");
+        let answer = document.createElement("span");
+        let cross = document.createElement('div')
+
+        li.setAttribute('data-id', dc.id);
+        fact.textContent = dc.data().fact;
+        answer.textContent = dc.data().answer;
+        cross.textContent = 'x';
+
+        li.appendChild(fact);
+        li.appendChild(answer);
+        li.appendChild(cross);
+
+        onesList.appendChild(li);
+
+        cross.addEventListener('click', (e) => {
+            e.stopPropagation();
+            let id = e.target.parentElement.getAttribute('data-id');
+            deleteDoc(doc(db, "ones", id))
+        })
+    }
+
+    const ones = getDocs(collection(db, "ones")).then((snapshot) => {
+        snapshot.forEach((doc) => {
+            renderMultiplicationFact(doc)
+        })
+    }); 
+    
+    const q= query(collection(db, "ones"), where("answer", "==", "1"));
+    const querySnapshot =  await getDocs(q);
+    querySnapshot.forEach((doc) => {
+        console.log(doc.id, "=>", doc.data())
+    })
+
+    const upDoc = doc(db, "ones", "1x3");
+
+    updateDoc(upDoc, {
+        answer: "4"
+    })
+
+    form.addEventListener(('submit'), (e) => {
+        e.preventDefault(); // code voids this statement, Why?
+        const docRef = addDoc(collection(db, "ones"), {
+            fact: form.fact.value,
+            answer: form.answer.value
+        })
+    });
+
+
+
+</script>
+
+<script type="module" src="/js/app.js"></script>
+
+</body>
+</html>
